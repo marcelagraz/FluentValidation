@@ -60,6 +60,11 @@ public interface IValidationRule<T, out TProperty> : IValidationRule<T> {
 	/// Allows custom creation of an error message
 	/// </summary>
 	public Func<IMessageBuilderContext<T,TProperty>, string> MessageBuilder { set; }
+
+	/// <summary>
+	/// Allows custom creation of an error message
+	/// </summary>
+	public Func<IMessageBuilderContext<T,TProperty>, Task<string>> AsyncMessageBuilder { set; }
 }
 
 public interface IValidationRule<T> : IValidationRule {

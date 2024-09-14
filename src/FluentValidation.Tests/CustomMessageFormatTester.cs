@@ -66,6 +66,21 @@ public class CustomMessageFormatTester {
 	}
 
 	[Fact]
+	public void Uses_custom_delegate_for_async_building_message_only_for_specific_validator() {
+		validator.RuleFor(x => x.Surname).NotNull().NotEmpty().Configure(cfg => {
+			cfg.AsyncMessageBuilder = async context => {
+				if (context.PropertyValidator is INotNullValidator)
+					return "Foo";
+				return await context.GetDefaultMessageAsync();
+			};
+		});
+
+		var result = validator.Validate(new Person());
+		result.Errors[0].ErrorMessage.ShouldEqual("Foo");
+		result.Errors[1].ErrorMessage.ShouldEqual("'Surname' must not be empty.");
+	}
+
+	[Fact]
 	public void Uses_property_value_in_message() {
 		validator.RuleFor(x => x.Surname).NotEqual("foo").WithMessage(person => $"was {person.Surname}");
 		var error = validator.Validate(new Person { Surname = "foo"}).Errors.Single().ErrorMessage;

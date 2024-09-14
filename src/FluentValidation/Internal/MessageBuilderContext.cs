@@ -1,6 +1,7 @@
 ﻿namespace FluentValidation.Internal;
 
 using System;
+using System.Threading.Tasks;
 using Resources;
 using Validators;
 
@@ -14,6 +15,7 @@ public interface IMessageBuilderContext<T, out TProperty> {
 	T InstanceToValidate { get; }
 	TProperty PropertyValue { get; }
 	string GetDefaultMessage();
+	Task<string> GetDefaultMessageAsync();
 }
 
 public class MessageBuilderContext<T,TProperty> : IMessageBuilderContext<T,TProperty> {
@@ -48,5 +50,9 @@ public class MessageBuilderContext<T,TProperty> : IMessageBuilderContext<T,TProp
 
 	public string GetDefaultMessage() {
 		return Component.GetErrorMessage(_innerContext, _value);
+	}
+
+	public Task<string> GetDefaultMessageAsync() {
+		return Component.GetErrorMessageAsync(_innerContext, _value);
 	}
 }

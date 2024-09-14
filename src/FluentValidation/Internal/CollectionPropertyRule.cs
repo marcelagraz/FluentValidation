@@ -156,7 +156,7 @@ internal class CollectionPropertyRule<T, TElement> : RuleBase<T, IEnumerable<TEl
 
 					if (!valid) {
 						PrepareMessageFormatterForValidationError(context, valueToValidate);
-						var failure = CreateValidationError(context, valueToValidate, component);
+						var failure = await CreateValidationErrorAsync(context, valueToValidate, component);
 						context.Failures.Add(failure);
 					}
 

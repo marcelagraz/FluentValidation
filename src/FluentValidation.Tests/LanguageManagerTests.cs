@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Internal;
 using Resources;
 using Validators;
@@ -108,8 +109,21 @@ public class LanguageManagerTests {
 		var validator = new InlineValidator<Person>();
 		validator.RuleFor(x => x.Surname).NotNull();
 
-		var component = (RuleComponent<Person,string>)validator.First().Components.First();
+		var component = (RuleComponent<Person, string>)validator.First().Components.First();
 		var msg = component.GetErrorMessage(null, null);
+		ValidatorOptions.Global.LanguageManager.Culture = null;
+
+		msg.ShouldEqual("'{PropertyName}' ne doit pas avoir la valeur null.");
+	}
+
+	[Fact]
+	public async Task Always_use_specific_language_with_async_string_source() {
+		ValidatorOptions.Global.LanguageManager.Culture = new CultureInfo("fr-FR");
+		var validator = new InlineValidator<Person>();
+		validator.RuleFor(x => x.Surname).NotNull();
+
+		var component = (RuleComponent<Person, string>)validator.First().Components.First();
+		var msg = await component.GetErrorMessageAsync(null, null);
 		ValidatorOptions.Global.LanguageManager.Culture = null;
 
 		msg.ShouldEqual("'{PropertyName}' ne doit pas avoir la valeur null.");
