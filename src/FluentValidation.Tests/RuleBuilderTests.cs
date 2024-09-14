@@ -59,8 +59,15 @@ public class RuleBuilderTests {
 	[Fact]
 	public void Should_set_custom_error() {
 		builder.SetValidator(new TestPropertyValidator<Person, string>()).WithMessage("Bar");
-		var component = (RuleComponent<Person, string>) _rule.Current;
+		var component = (RuleComponent<Person, string>)_rule.Current;
 		component.GetErrorMessage(null, default).ShouldEqual("Bar");
+	}
+
+	[Fact]
+	public async Task Should_set_async_custom_error() {
+		builder.SetValidator(new TestPropertyValidator<Person, string>()).WithMessage("Bar");
+		var component = (RuleComponent<Person, string>)_rule.Current;
+		(await component.GetErrorMessageAsync(null, default)).ShouldEqual("Bar");
 	}
 
 	[Fact]

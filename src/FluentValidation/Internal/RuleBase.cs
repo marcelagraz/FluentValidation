@@ -194,6 +194,11 @@ internal abstract class RuleBase<T, TProperty, TValue> : IValidationRule<T, TVal
 	public Func<IMessageBuilderContext<T, TValue>, string> MessageBuilder { get; set; }
 
 	/// <summary>
+	/// Allows custom creation of an error message
+	/// </summary>
+	public Func<IMessageBuilderContext<T, TValue>, Task<string>> AsyncMessageBuilder { get; set; }
+
+	/// <summary>
 	/// Dependent rules
 	/// </summary>
 	internal List<IValidationRuleInternal<T>> DependentRules { get; private protected set; }
@@ -317,10 +322,10 @@ internal abstract class RuleBase<T, TProperty, TValue> : IValidationRule<T, TVal
 	/// <param name="value">The property value</param>
 	/// <param name="component">The current rule component.</param>
 	/// <returns>Returns an error validation result.</returns>
-	protected ValidationFailure CreateValidationError(ValidationContext<T> context, TValue value, RuleComponent<T, TValue> component) {
-		var error = MessageBuilder != null
-			? MessageBuilder(new MessageBuilderContext<T, TValue>(context, value, component))
-			: component.GetErrorMessage(context, value);
+	protected async Task<ValidationFailure> CreateValidationErrorAsync(ValidationContext<T> context, TValue value, RuleComponent<T, TValue> component) {
+		var error = AsyncMessageBuilder != null ? await AsyncMessageBuilder(new MessageBuilderContext<T, TValue>(context, value, component)) :
+			MessageBuilder != null ? MessageBuilder(new MessageBuilderContext<T, TValue>(context, value, component))
+			: await component.GetErrorMessageAsync(context, value);
 
 		var failure = new ValidationFailure(context.PropertyPath, error, value);
 

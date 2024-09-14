@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Internal;
 using Xunit;
 
@@ -64,6 +65,24 @@ public class LocalisedMessagesTester : IDisposable {
 	public void Uses_func_to_get_message() {
 		var validator = new TestValidator();
 		validator.RuleFor(x => x.Forename).NotNull().WithMessage(x => "el foo");
+
+		var result = validator.Validate(new Person());
+		result.Errors[0].ErrorMessage.ShouldEqual("el foo");
+	}
+
+	[Fact]
+	public void Uses_func_to_get_async_message() {
+		var validator = new TestValidator();
+		validator.RuleFor(x => x.Forename).NotNull().WithMessageAsync(x => Task.FromResult("el foo"));
+
+		var result = validator.Validate(new Person());
+		result.Errors[0].ErrorMessage.ShouldEqual("el foo");
+	}
+
+	[Fact]
+	public void Uses_func_to_get_async_message_with_property_value() {
+		var validator = new TestValidator();
+		validator.RuleFor(x => x.Forename).NotNull().WithMessageAsync((x, t) => Task.FromResult("el foo"));
 
 		var result = validator.Validate(new Person());
 		result.Errors[0].ErrorMessage.ShouldEqual("el foo");

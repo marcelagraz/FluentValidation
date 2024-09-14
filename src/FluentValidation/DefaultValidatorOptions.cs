@@ -271,6 +271,34 @@ public static class DefaultValidatorOptions {
 	}
 
 	/// <summary>
+	/// Specifies a custom error message to use when validation fails. Only applies to the rule that directly precedes it.
+	/// </summary>
+	/// <param name="rule">The current rule</param>
+	/// <param name="messageProvider">Delegate that will be invoked to retrieve the localized message. </param>
+	/// <returns></returns>
+	public static IRuleBuilderOptions<T, TProperty> WithMessageAsync<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, Func<T, Task<string>> messageProvider) {
+		ArgumentNullException.ThrowIfNull(messageProvider);
+		Configurable(rule).Current.SetAsyncErrorMessage((ctx, val) => {
+			return messageProvider(ctx == null ? default : ctx.InstanceToValidate);
+		});
+		return rule;
+	}
+
+	/// <summary>
+	/// Specifies a custom error message to use when validation fails. Only applies to the rule that directly precedes it.
+	/// </summary>
+	/// <param name="rule">The current rule</param>
+	/// <param name="messageProvider">Delegate that will be invoked.Uses_localized_name to retrieve the localized message. </param>
+	/// <returns></returns>
+	public static IRuleBuilderOptions<T, TProperty> WithMessageAsync<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, Func<T, TProperty, Task<string>> messageProvider) {
+		ArgumentNullException.ThrowIfNull(messageProvider);
+		Configurable(rule).Current.SetAsyncErrorMessage((context, value) => {
+			return messageProvider(context == null ? default : context.InstanceToValidate, value);
+		});
+		return rule;
+	}
+
+	/// <summary>
 	/// Specifies an asynchronous condition limiting when the validator should run.
 	/// The validator will only be executed if the result of the lambda returns true.
 	/// </summary>

@@ -33,6 +33,7 @@ using Validators;
 public class RuleComponent<T,TProperty> : IRuleComponent<T,TProperty> {
 	private string _errorMessage;
 	private Func<ValidationContext<T>, TProperty, string> _errorMessageFactory;
+	private Func<ValidationContext<T>, TProperty, Task<string>> _asyncErrorMessageFactory;
 	private Func<ValidationContext<T>, bool> _condition;
 	private Func<ValidationContext<T>, CancellationToken, Task<bool>> _asyncCondition;
 	private readonly IPropertyValidator<T, TProperty> _propertyValidator;
@@ -178,6 +179,32 @@ public class RuleComponent<T,TProperty> : IRuleComponent<T,TProperty> {
 	}
 
 	/// <summary>
+	/// Gets the error message. If a context is supplied, it will be used to format the message if it has placeholders.
+	/// If no context is supplied, the raw unformatted message will be returned, containing placeholders.
+	/// </summary>
+	/// <param name="context">The validation context.</param>
+	/// <param name="value">The current property value.</param>
+	/// <returns>Either the formatted or unformatted error message.</returns>
+	public async Task<string> GetErrorMessageAsync(ValidationContext<T> context, TProperty value) {
+		// Use a custom message if one has been specified.
+		string rawTemplate = (_asyncErrorMessageFactory is null ? null : await _asyncErrorMessageFactory?.Invoke(context, value)) ??
+			_errorMessageFactory?.Invoke(context, value) ??
+			_errorMessage;
+
+
+		// If no custom message has been supplied, use the default.
+		if (rawTemplate == null) {
+			rawTemplate = Validator.GetDefaultMessageTemplate(ErrorCode);
+		}
+
+		if (context == null) {
+			return rawTemplate;
+		}
+
+		return context.MessageFormatter.BuildMessage(rawTemplate);
+	}
+
+	/// <summary>
 	/// Gets the raw unformatted error message. Placeholders will not have been rewritten.
 	/// </summary>
 	/// <returns></returns>
@@ -193,11 +220,27 @@ public class RuleComponent<T,TProperty> : IRuleComponent<T,TProperty> {
 	}
 
 	/// <summary>
+	/// Gets the raw unformatted error message. Placeholders will not have been rewritten.
+	/// </summary>
+	/// <returns></returns>
+	public async Task<string> GetUnformattedErrorMessageAsync() {
+		string message = (_asyncErrorMessageFactory is null ? null : await _asyncErrorMessageFactory?.Invoke(null, default)) ?? _errorMessageFactory?.Invoke(null, default) ?? _errorMessage;
+
+		// If no custom message has been supplied, use the default.
+		if (message == null) {
+			message = Validator.GetDefaultMessageTemplate(ErrorCode);
+		}
+
+		return message;
+	}
+
+	/// <summary>
 	/// Sets the overridden error message template for this validator.
 	/// </summary>
 	/// <param name="errorFactory">A function for retrieving the error message template.</param>
 	public void SetErrorMessage(Func<ValidationContext<T>, TProperty, string> errorFactory) {
 		_errorMessageFactory = errorFactory;
+		_asyncErrorMessageFactory = null;
 		_errorMessage = null;
 	}
 
@@ -207,6 +250,17 @@ public class RuleComponent<T,TProperty> : IRuleComponent<T,TProperty> {
 	/// <param name="errorMessage">The error message to set</param>
 	public void SetErrorMessage(string errorMessage) {
 		_errorMessage = errorMessage;
+		_asyncErrorMessageFactory = null;
 		_errorMessageFactory = null;
+	}
+
+	/// <summary>
+	/// Sets the overridden error message template for this validator.
+	/// </summary>
+	/// <param name="asyncErrorFactory">A function for retrieving the error message template.</param>
+	public void SetAsyncErrorMessage(Func<ValidationContext<T>, TProperty, Task<string>> asyncErrorFactory) {
+		_asyncErrorMessageFactory = asyncErrorFactory;
+		_errorMessageFactory = null;
+		_errorMessage = null;
 	}
 }

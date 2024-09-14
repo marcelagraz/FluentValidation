@@ -65,6 +65,12 @@ public interface IRuleComponent<T, out TProperty> : IRuleComponent {
 	/// <summary>
 	/// Sets the overridden error message template for this validator.
 	/// </summary>
+	/// <param name="errorFactory">A function for retrieving the error message template.</param>
+	void SetAsyncErrorMessage(Func<ValidationContext<T>, TProperty, Task<string>> errorFactory);
+
+	/// <summary>
+	/// Sets the overridden error message template for this validator.
+	/// </summary>
 	/// <param name="errorMessage">The error message to set</param>
 	void SetErrorMessage(string errorMessage);
 }
@@ -93,6 +99,12 @@ public interface IRuleComponent {
 	/// </summary>
 	/// <returns></returns>
 	string GetUnformattedErrorMessage();
+
+	/// <summary>
+	/// Gets the raw unformatted error message. Placeholders will not have been rewritten.
+	/// </summary>
+	/// <returns></returns>
+	Task<string> GetUnformattedErrorMessageAsync();
 
 	/// <summary>
 	/// The error code associated with this rule component.

@@ -131,7 +131,7 @@ internal class PropertyRule<T, TProperty> : RuleBase<T, TProperty, TProperty>, I
 
 			if (!valid) {
 				PrepareMessageFormatterForValidationError(context, propValue);
-				var failure = CreateValidationError(context, propValue, component);
+				var failure = await CreateValidationErrorAsync(context, propValue, component);
 				context.Failures.Add(failure);
 			}
 
